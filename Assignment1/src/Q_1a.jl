@@ -1,8 +1,6 @@
 # Import necessary modules; CSV is for reading .csv files and Plots is for plotting
 using CSV
 using Plots
-using Statistics
-using LinearAlgebra
 using DataFrames
 
 # Y = β_0 * X_0 + β_1 * X_1 + β_2 * X_2
@@ -119,6 +117,3 @@ r_sq = 1 - (sum((YPred.-Y_test).^2))/(sum((Y_test.-(sum(Y_test)/length(Y_test)))
 
 df = DataFrame(YPred)
 CSV.write("C:\\Users\\Avyakta\\github\\GNR-ML\\Assignment1\\data\\1a.csv", df)
-
-print(newB, " ")
-print(rmse, " ", r_sq)

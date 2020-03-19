@@ -1,8 +1,6 @@
 # Import necessary modules; CSV is for reading .csv files and Plots is for plotting
 using CSV
 using Plots
-using Statistics
-using LinearAlgebra
 using DataFrames
 # Y = β_0 * X_0 + β_1 * X_1 + β_2 * X_2
 # if X_0 = 1: we can write the above as Y = β * X for vectorization
@@ -109,7 +107,7 @@ Y_val = course1_validation
 YPred = X_val * newB
 
 rmse_val = ((sum((YPred.-Y_val).^2))/m_val)^0.5
-print(rmse_val," ")
+#print(rmse_val," ")
 
 r_sq_val = 1 - (sum((YPred.-Y_val).^2))/(sum((Y_val.-(sum(Y_val)/length(Y_val))).^2))
 
@@ -141,7 +139,7 @@ rmse_test = ((sum((YPred_test.-Y_test).^2))/m_test)^0.5
 
 r_sq_test = 1 - (sum((YPred_test.-Y_test).^2))/(sum((Y_test.-(sum(Y_test)/length(Y_test))).^2))
 
-print(rmse_test)
+#print(rmse_test)
 
 df = DataFrame(YPred_test)
 CSV.write("C:\\Users\\Avyakta\\github\\GNR-ML\\Assignment1\\data\\2a.csv", df)

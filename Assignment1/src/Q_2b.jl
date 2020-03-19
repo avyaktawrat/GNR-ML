@@ -1,8 +1,6 @@
 # Import necessary modules; CSV is for reading .csv files and Plots is for plotting
 using CSV
 using Plots
-using Statistics
-using LinearAlgebra
 using DataFrames
 
 # Y = β_0 * X_0 + β_1 * X_1 + β_2 * X_2
@@ -53,7 +51,7 @@ Y = course1
 # Define a function to calculate cost function
 function costFunction(X, Y, B, L)
     m = length(Y)
-    cost = sum(((X * B) - Y).^2)/(m) + L*sum(abs.(B[2:4,1]))/m
+    cost = sum(((X * B) - Y).^2)/(2*m) + L*sum(abs.(B))/(2*m) - L*abs.(B[1])/(2*m)
     return cost
 end
 
@@ -65,30 +63,54 @@ intialCost = costFunction(X, Y, B, L)
 
 
 # Define a function to perform gradient descent
-function gradientDescent(X, Y, B, learningRate, numIterations, L)
-    costHistory = zeros(numIterations)
-    m = length(Y)
+#function gradientDescent(X, Y, B, learningRate, numIterations, L)
+#    costHistory = zeros(numIterations)
+#    m = length(Y)
     # do gradient descent for require number of iterations
-    for iteration in 1:numIterations
+#    for iteration in 1:numIterations
         # Predict with current model B and find loss
-        loss = (X * B) - Y
+#        loss = (X * B) - Y
         # Compute Gradients: Ref to Andrew Ng. course notes linked on course page and Moodle
-        gradient = (X' * loss)/m + L*(abs.(B)./B)/m
-        gradient[1] = gradient[1] - L*(abs.(B[1])./B[1])/m
+#        gradient = (X' * loss)/m + L*(abs.(B)./B)/m
+#        gradient[1] = gradient[1] - L*(abs.(B[1])./B[1])/m
         # Perform a descent step in direction oposite to gradient; we want to minimize cost!
-        B = B - learningRate * gradient
+#        B = B - learningRate * gradient
         # Calculate cost of the new model found by descending a step above
-        cost = costFunction(X, Y, B, L)
+#        cost = costFunction(X, Y, B, L)
         # Store costs in a vairable to visualize later
-        costHistory[iteration] = cost
-    end
-    return B, costHistory
+#        costHistory[iteration] = cost
+#    end
+#    return B, costHistory
+#end
+
+function soft_threshold(rho,Alpha)
+    if rho < -1 * Alpha / 2
+        return (rho + Alpha/2)
+	elseif	rho > Alpha / 2
+		return (rho - Alpha/2)
+    else
+    	return 0
+	end
 end
 
-#
-learningRate = 0.3
-lambda = 100000000
-newB, costHistory = gradientDescent(X, Y, B, learningRate, 1000, lambda)
+function coordinateDescent(Xtrain, Xvalidate, Ytrain, Yvalidate, B, numIterations, Alpha)
+	m = length(Ytrain)
+	costHistory = zeros(numIterations)
+	for iter in 1:numIterations
+            for j in 1:length(B)
+			rho = sum(Xtrain[(1:m),j] .* (Ytrain - (Xtrain * B) + (B[j].* Xtrain[(1:m),j]) )) /m
+			if j == 1
+                            B[j] = rho
+                        else
+                            B[j] = soft_threshold(rho, Alpha)
+
+                        end
+	    end
+		costHistory[iter] = costFunction(Xtrain,Ytrain,B,Alpha)
+        end
+	cost = costFunction(Xvalidate, Yvalidate, B, 0)
+    return B,sqrt(2*cost),costHistory
+end
 
 ################################################################
 course1_validation = validation.price
@@ -105,10 +127,11 @@ X_val = cat(x0_val, course2_validation, course3_validation , course4_validation,
 # Get the variable we want to regress
 Y_val = course1_validation
 
-YPred = X_val * newB
+learningRate = 0.003
+lambda = 20000
+newB,  rmse_val, costHistory= coordinateDescent(X, X_val, Y, Y_val, B, 1000, lambda)
 
-rmse_val = ((sum((YPred.-Y_val).^2))/m_val)^0.5
-print(rmse_val," ")
+YPred = X_val * newB
 
 r_sq_val = 1 - (sum((YPred.-Y_val).^2))/(sum((Y_val.-(sum(Y_val)/length(Y_val))).^2))
 
@@ -131,13 +154,12 @@ Y_test = course1_test
 #display(plot!(YPred[1:1000]))
 
 # Visualize the learning: how the loss decreased.
-display(plot(costHistory))
+#display(plot(costHistory))
 
 rmse = ((sum((YPred_test.-Y_test).^2))/m_test)^0.5
 
 r_sq = 1 - (sum((YPred_test.-Y_test).^2))/(sum((Y_test.-(sum(Y_test)/length(Y_test))).^2))
 
-print(rmse_test)
 
 df = DataFrame(YPred_test)
 CSV.write("C:\\Users\\Avyakta\\github\\GNR-ML\\Assignment1\\data\\2b.csv", df)

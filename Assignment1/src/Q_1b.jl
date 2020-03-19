@@ -1,8 +1,6 @@
 # Import necessary modules; CSV is for reading .csv files and Plots is for plotting
 using CSV
 using Plots
-using Statistics
-using LinearAlgebra
 using DataFrames
 
 # Y = β_0 * X_0 + β_1 * X_1 + β_2 * X_2
